@@ -270,14 +270,48 @@ void setCivSpecificBuildings()
     xsArraySetBool(arrayId, economicOffset + civSpecificBuilding, true);
 }
 
-void resetUserConfiguration()
+void resetUserConfiguration(bool initialValue = false)
 {
     int arrayId = xsTriggerVariable(buildingConfigurationVariable);
     int i = 0;
     for (i = 0; < xsArrayGetSize(arrayId))
     {
-        xsArraySetBool(arrayId, i, false);
+        xsArraySetBool(arrayId, i, initialValue);
     }
+}
+
+void verifyAndFixUserConfiguration()
+{
+    bool isAgeValid = false;
+    bool isTypeValid = false;
+
+    int arrayId = xsTriggerVariable(buildingConfigurationVariable);
+    int i = 0;
+    for (i = 0; < xsArrayGetSize(arrayId))
+    {
+        if (i < economicOffset)
+        {
+            isAgeValid = isAgeValid || xsArrayGetBool(arrayId, i);
+        }
+        else
+        {
+            isTypeValid = isTypeValid || xsArrayGetBool(arrayId, i);
+        }
+    }
+    if (isAgeValid && isTypeValid)
+    {
+        return;
+    }
+    if (isAgeValid == false)
+    {
+        xsChatData("At least one relic must be in front of the buildings for age configuration.");
+    }
+    if (isTypeValid == false)
+    {
+        xsChatData("At least one relic must be in front of the buildings for type configuration.");
+    }
+    xsChatData("Invalid user configuration. Setting configuration to default configuration.");
+    resetUserConfiguration(true);
 }
 
 /**************************************************
@@ -286,6 +320,8 @@ void resetUserConfiguration()
 
 void initBuildings()
 {
+    verifyAndFixUserConfiguration();
+
     int currentBuildingFrequencyArrayId = xsTriggerVariable(currentBuildingFrequencyVariable);
     int overallBuildingFrequencyArrayId = xsTriggerVariable(overallBuildingFrequencyVariable);
     int buildingRequiredAgeArrayId = xsTriggerVariable(buildingRequiredAgeVariable);
